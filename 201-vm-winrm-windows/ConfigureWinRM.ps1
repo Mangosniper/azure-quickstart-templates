@@ -1,4 +1,4 @@
-﻿#################################################################################################################################
+#################################################################################################################################
 #  Name        : Configure-WinRM.ps1                                                                                            #
 #                                                                                                                               #
 #  Description : Configures the WinRM on a local machine                                                                        #
@@ -83,7 +83,7 @@ function Configure-WinRMHttpsListener
         $thumbprint = Create-Certificate -hostname $HostName
     }
 
-    $WinrmCreate= "winrm create --% winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname=`"$hostName`";CertificateThumbprint=`"$thumbPrint`"}"
+    $WinrmCreate= "winrm create --% winrm/config/Listener?Address=*+Transport=HTTPS @{Port=`"$port`";Hostname=`"$hostName`";CertificateThumbprint=`"$thumbPrint`"}"
     invoke-expression $WinrmCreate
     winrm set winrm/config/service/auth '@{Basic="true"}'
 }
@@ -104,14 +104,14 @@ function Add-FirewallException
 #                                              Configure WinRM                                                                  #
 #################################################################################################################################
 
-$winrmHttpsPort=443 #NKN, changed to port allowed by Firewall
+$winrmHttpsPort=443
 
 # The default MaxEnvelopeSizekb on Windows Server is 500 Kb which is very less. It needs to be at 8192 Kb. The small envelop size if not changed
 # results in WS-Management service responding with error that the request size exceeded the configured MaxEnvelopeSize quota.
 winrm set winrm/config '@{MaxEnvelopeSizekb = "8192"}'
 
 # Configure https listener
-Configure-WinRMHttpsListener $HostName $port
+Configure-WinRMHttpsListener $HostName $winrmHttpsPort
 
 # Add firewall exception
 Add-FirewallException -port $winrmHttpsPort
